@@ -1,10 +1,11 @@
 #include <stdlib.h>
 
+#include "utils.h"
 #include "actionmeta.h"
 
-ActionMeta* newActionMeta(char* filePath) {
+ActionMeta* newActionMeta(void) {
     ActionMeta* toRet = malloc(sizeof(ActionMeta));
-    toRet->filePath = filePath;
+    toRet->filePath = null;
     toRet->type = binary_mode;
     toRet->seperator = ' ';
     toRet->tokensToNewLine = 0;

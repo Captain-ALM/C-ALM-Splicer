@@ -9,7 +9,10 @@
 #define eof -1
 #define null 0
 
-int string_to_int(const char* str);
+const char* jump_to_pos(const char* str, char target);
+
+long string_to_long(const char* str);
+long string_to_long_ended(const char* str, char ender);
 
 size_t pow_int(size_t base, size_t exponent);
 

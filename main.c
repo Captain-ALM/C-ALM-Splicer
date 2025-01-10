@@ -11,11 +11,172 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output);
 
 int main(int argc, char *argv[])
 {
-    help();
+    if (argc < 2)
+    {
+        help();
+    }
+    else
+    {
+        if (strcmp("-h", argv[1]) == 0)
+        {
+            help();
+        }
+        else
+        {
+            ActionMeta* c = null;
+            ActionMeta* out = null;
+            ActionMeta** ins = malloc(sizeof(ActionMeta*));
+            bool settingsNext = false;
+            bool isOut = false;
+            bool fileNext = false;
+            bool expectRange = false;
+            bool expectSeperator = false;
+            bool expectBSz = false;
+            bool expectTTNL = false;
+            size_t insL = 1;
+            size_t insC = 0;
+            for (size_t i = 1; i < argc; ++i)
+            {
+                if (c == null)
+                {
+                    if (strcmp(argv[i], "-i") == 0)
+                    {
+                        isOut = false;
+                    }
+                    else if (strcmp(argv[i], "-o") == 0)
+                    {
+                        isOut = true;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    settingsNext = true;
+                }
+                else if (settingsNext)
+                {
+                    settingsNext = false;
+                    expectRange = false;
+                    expectSeperator = false;
+                    expectBSz = false;
+                    expectTTNL = false;
+                    c = newActionMeta();
+                    if (isOut)
+                    {
+                        if (out != null)
+                            free(out);
+                        out = c;
+                    }
+                    else
+                    {
+                        if (insC >= insL)
+                        {
+                            ins = realloc(ins, sizeof(ActionMeta*)*insL*2);
+                            insL *= 2;
+                        }
+                        ins[insC++] = c;
+                    }
+                    char* ptr = argv[i];
+                    while (*ptr != '\0')
+                    {
+                        char cc = *(ptr++);
+                        if (cc == binary_mode || cc == code_mode || cc == hex_mode || cc == hex_upper_mode)
+                        {
+                            c->type = cc;
+                        }
+                        else if (cc == 'r' && !isOut)
+                        {
+                            expectRange = true;
+                        }
+                        else if (cc == 's')
+                        {
+                            expectSeperator = true;
+                        }
+                        else if (cc == 'z' && !isOut)
+                        {
+                            expectBSz = true;
+                        }
+                        else if (cc == 'n' && isOut)
+                        {
+                            expectTTNL = true;
+                        }
+                    }
+                    fileNext = true;
+                }
+                else if (fileNext)
+                {
+                    fileNext = false;
+                    c->filePath = argv[i];
+                }
+                else if (expectRange)
+                {
+                    expectRange = false;
+                    if (*argv[i] == ':')
+                    {
+                        long u = string_to_long(argv[i]+1);
+                        if (u > 0)
+                        {
+                            c->unbounded = false;
+                            c->last = (size_t) u;
+                        }
+                    }
+                    else
+                    {
+                        long l = string_to_long_ended(argv[i], '-');
+                        if (l < 0)
+                            continue;
+                        c->first = (size_t) l;
+                        const char* pargv = jump_to_pos(argv[i], '-');
+                        if (*(pargv++) != '-')
+                            continue;
+                        long u = string_to_long(pargv);
+                        if (u > l)
+                        {
+                            c->unbounded = false;
+                            c->last = (size_t) u;
+                        }
+                    }
+                }
+                else if (expectSeperator)
+                {
+                    expectSeperator = false;
+                    c->seperator = *argv[i];
+                }
+                else if (expectBSz)
+                {
+                    expectBSz = false;
+                    long sz = string_to_long(argv[i]);
+                    if (sz > 0)
+                        c->bufferSize = (size_t) sz;
+                }
+                else if (expectTTNL)
+                {
+                    expectTTNL = false;
+                    long tc = string_to_long(argv[i]);
+                    if (tc > -1)
+                        c->tokensToNewLine = (size_t) tc;
+                }
+                else
+                {
+                    c = null;
+                }
+            }
+
+            bool ok = begin(ins, insC, out);
+
+            for (size_t i = 0; i < insC; ++i)
+                free(ins[i]);
+            free(ins);
+
+            if (!ok)
+                return 1;
+        }
+    }
     return 0;
 }
 
-void help(void) {
+void help(void)
+{
     printf("c-alm-splicer <args...>\n"
            "\n"
            "args:\n"

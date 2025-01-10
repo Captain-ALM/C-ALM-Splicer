@@ -20,6 +20,6 @@ typedef struct {
     bool unbounded;
 } ActionMeta;
 
-ActionMeta* newActionMeta(char* filePath);
+ActionMeta* newActionMeta(void);
 
 #endif

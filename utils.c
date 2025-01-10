@@ -1,17 +1,30 @@
 #include "utils.h"
 
-int string_to_int(const char* str) {
-    int val = 0;
-    int mult = 1;
-    if (*str == '\0') return -1;
-    const char* ptr = str;
-    while (*(++ptr) != '\0');
+bool not_either_internal(char a, char b1, char b2) {
+    return a != b1 && a != b2;
+}
+
+const char* jump_to_pos(const char* str, char target) {
+    const char* pos = str;
+    while (not_either_internal(*(++pos), target, '\0'));
+    return pos;
+}
+
+long string_to_long_ended(const char* str, char ender) {
+    long val = 0;
+    long mult = 1;
+    if (*str == ender || *str == '\0') return -1;
+    const char* ptr = jump_to_pos(str, ender);
     --ptr;
     while (ptr >= str) {
         val += code_to_int(*(ptr--)) * mult;
         mult *= 10;
     }
     return val;
+}
+
+long string_to_long(const char* str) {
+    return string_to_long_ended(str, '\0');
 }
 
 size_t pow_int(size_t base, size_t exponent) {
