@@ -1,46 +1,60 @@
 #include "utils.h"
 
-int pow_int(int base, int exponent) {
-    int val = 1;
-    for (int i = 0; i < exponent; ++i)
+int string_to_int(const char* str) {
+    int val = 0;
+    int mult = 1;
+    if (*str == '\0') return -1;
+    const char* ptr = str;
+    while (*(++ptr) != '\0');
+    --ptr;
+    while (ptr >= str) {
+        val += code_to_int(*(ptr--)) * mult;
+        mult *= 10;
+    }
+    return val;
+}
+
+size_t pow_int(size_t base, size_t exponent) {
+    size_t val = 1;
+    for (size_t i = 0; i < exponent; ++i)
         val *= base;
     return val;
 }
 
-char code_buff_to_byte(char* buff, int len) {
+char code_buff_to_byte(const char* buff, size_t len) {
     char val = 0;
-    int mult = 1;
-    for (int i = len - 1; i > -1; --i) {
+    size_t mult = 1;
+    for (size_t i = len - 1; i > -1; --i) {
         val += code_to_int(buff[i]) * mult;
         mult*=10;
     }
     return val;
 }
 
-char hex_buff_to_byte(char* buff, int len) {
+char hex_buff_to_byte(const char* buff, size_t len) {
     char val = 0;
-    int shift = 0;
-    for (int i = len - 1; i > -1; --i) {
+    size_t shift = 0;
+    for (size_t i = len - 1; i > -1; --i) {
         val += hex_to_int(buff[i]) << shift;
         shift+=4;
     }
     return val;
 }
 
-int byte_to_code_buff(char byte, char** buff) {
+size_t byte_to_code_buff(char byte, char** buff) {
     unsigned char byteS = (unsigned char) byte;
-    int sz = (byteS > 99) ? 3 : ((byteS > 9) ? 2 : 1);
+    size_t sz = (byteS > 99) ? 3 : ((byteS > 9) ? 2 : 1);
     *buff = malloc(sizeof(char)*sz);
-    int mult = pow_int(10, sz - 1);
-    for (int i = 0; i < sz; ++i) {
-        (*buff)[i] = ((int) byteS / mult) + 48;
-        byteS = (int) byteS % mult;
+    size_t mult = pow_int(10, sz - 1);
+    for (size_t i = 0; i < sz; ++i) {
+        (*buff)[i] = ((size_t) byteS / mult) + 48;
+        byteS = (size_t) byteS % mult;
         mult /= 10;
     }
     return sz;
 }
 
-int byte_to_hex_buff(char byte, char** buff, bool upper) {
+size_t byte_to_hex_buff(char byte, char** buff, bool upper) {
     *buff = malloc(sizeof(char)*2);
     (*buff)[0] = (upper ? int_to_hex_upper : int_to_hex)((byte>>4)&15);
     (*buff)[1] = (upper ? int_to_hex_upper : int_to_hex)(byte&15);
