@@ -5,15 +5,43 @@
 #include "utils.h"
 #include "actionmeta.h"
 
+void help(void);
 bool begin(ActionMeta** sources, size_t sLen, ActionMeta* destination);
 bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output);
 
 int main(int argc, char *argv[])
 {
+    help();
     return 0;
 }
 
-
+void help(void) {
+    printf("c-alm-splicer <args...>\n"
+           "\n"
+           "args:\n"
+           "-h : This help message\n"
+           "-i [bchHrsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin\n"
+           "-o [bchHsn] <file-path|-> [separator] [tokens-to-new-line] : Writes a file out, - to wite to stdout\n"
+           "\n"
+           "Modes:\n"
+           "b : Binary (Default)\n"
+           "c : ASCII Integer Code\n"
+           "h : Hexadecimal (Lower case)\n"
+           "H : Hexadecimal (Upper case)\n"
+           "\n"
+           "range:\n"
+           "start-end : r : Specify a range from start (inclusive) to end (exclusive)\n"
+           "\n"
+           "separator:\n"
+           "\" \" : s : Specify the separator between tokens for c, h and H modes\n"
+           "\n"
+           "buffer-size:\n"
+           "8192 : z : Size of the copy buffer\n"
+           "\n"
+           "tokens-to-new-line:\n"
+           "0 : n : Number of tokens per line, 0 for no new lines\n"
+           "\n");
+}
 
 bool begin(ActionMeta** sources, size_t sLen, ActionMeta* destination)
 {
