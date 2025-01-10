@@ -298,8 +298,6 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
             return false;
         }
         pos += rd;
-        if (feof(input))
-            break;
         char* lbuffEnd = buff + rd;
         while (ptr < lbuffEnd)
         {
@@ -383,6 +381,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                     if (cb == '\r')
                         saanviSingla = true;
                     char cpb = ((source->type == code_mode) ? code_buff_to_byte : hex_buff_to_byte)(cbuff, cpos);
+                    cpos = 0;
                     if (destination->type == binary_mode)
                     {
                         size_t wt = fwrite(&cpb, sizeof(char), 1, output);
@@ -462,6 +461,8 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                 }
             }
         }
+        if (feof(input))
+            break;
         ptr = buff;
     }
 

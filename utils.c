@@ -37,7 +37,7 @@ size_t pow_int(size_t base, size_t exponent) {
 char code_buff_to_byte(const char* buff, size_t len) {
     char val = 0;
     size_t mult = 1;
-    for (size_t i = len - 1; i > -1; --i) {
+    for (size_t i = len - 1; i < len; --i) {
         val += code_to_int(buff[i]) * mult;
         mult*=10;
     }
@@ -47,7 +47,7 @@ char code_buff_to_byte(const char* buff, size_t len) {
 char hex_buff_to_byte(const char* buff, size_t len) {
     char val = 0;
     size_t shift = 0;
-    for (size_t i = len - 1; i > -1; --i) {
+    for (size_t i = len - 1; i < len; --i) {
         val += hex_to_int(buff[i]) << shift;
         shift+=4;
     }
