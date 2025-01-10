@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 
 void help(void)
 {
-    printf("c-alm-splicer <args...>\n"
+    printf("C-ALM-Splicer <args...>\n"
            "\n"
            "(C) Captain ALM 2025 - BSD 3-Clause License\n"
            "\n"
