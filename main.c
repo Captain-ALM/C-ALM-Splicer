@@ -162,11 +162,23 @@ int main(int argc, char *argv[])
                 }
             }
 
+            if (out == null || insC == 0) {
+                for (size_t i = 0; i < insC; ++i)
+                    free(ins[i]);
+                free(ins);
+                if (out == null)
+                    return 3;
+                else
+                    free(out);
+                return 2;
+            }
+
             bool ok = begin(ins, insC, out);
 
             for (size_t i = 0; i < insC; ++i)
                 free(ins[i]);
             free(ins);
+            free(out);
 
             if (!ok)
                 return 1;
@@ -178,6 +190,8 @@ int main(int argc, char *argv[])
 void help(void)
 {
     printf("c-alm-splicer <args...>\n"
+           "\n"
+           "(C) Captain ALM 2025 - BSD 3-Clause License\n"
            "\n"
            "args:\n"
            "-h : This help message\n"
