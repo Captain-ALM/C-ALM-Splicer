@@ -94,15 +94,15 @@ char hex_to_int(char hex) {
     return hex - 87;
 }
 
-char int_to_hex(char i) {
-    if ((unsigned char) i < 11) {
+char int_to_hex_upper(char i) {
+    if ((unsigned char) i < 10) {
         return (unsigned char) i + 48;
     }
     return (unsigned char) i + 55;
 }
 
-char int_to_hex_upper(char i) {
-    if ((unsigned char) i < 11) {
+char int_to_hex(char i) {
+    if ((unsigned char) i < 10) {
         return (unsigned char) i + 48;
     }
     return (unsigned char) i + 87;

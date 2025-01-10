@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
             size_t insC = 0;
             for (size_t i = 1; i < argc; ++i)
             {
-                if (c == null)
+                if (*argv[i] == '-' && !fileNext && !expectRange)
                 {
                     if (strcmp(argv[i], "-i") == 0)
                     {
@@ -156,13 +156,10 @@ int main(int argc, char *argv[])
                     if (tc > -1)
                         c->tokensToNewLine = (size_t) tc;
                 }
-                else
-                {
-                    c = null;
-                }
             }
 
-            if (out == null || insC == 0) {
+            if (out == null || insC == 0)
+            {
                 for (size_t i = 0; i < insC; ++i)
                     free(ins[i]);
                 free(ins);
@@ -240,6 +237,7 @@ bool begin(ActionMeta** sources, size_t sLen, ActionMeta* destination)
             fclose(output);
             return false;
         }
+        fflush(output);
     }
 
     if (strcmp(destination->filePath, "-") == 0)
@@ -263,7 +261,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
     }
 
     size_t pos = 0;
-    char* buff = malloc(sizeof(char)*source->bufferSize);
+    char* buff = malloc(source->bufferSize*sizeof(char));
     while (pos < source->first)
     {
         size_t r_left = source->first - pos;
@@ -290,7 +288,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
     while (source->unbounded || pos < source->last)
     {
         size_t r_left = source->last - pos;
-        size_t rd = fread(buff, sizeof(char), (size_t) ((r_left < source->bufferSize) ? r_left : source->bufferSize), input);
+        size_t rd = fread(buff, sizeof(char), (size_t) ((r_left != 0 && r_left < source->bufferSize) ? r_left : source->bufferSize), input);
         if (rd == 0 && !feof(input))
         {
             free(cbuff);

@@ -4,7 +4,7 @@
 #define BOOLS_H_INCLUDED
 
 #define bool int
-#define false 1
-#define true 0
+#define false 0
+#define true 1
 
 #endif
