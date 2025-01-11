@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
                 else if (expectRange)
                 {
                     expectRange = false;
-                    if (*argv[i] == ':')
+                    if (*argv[i] == '-')
                     {
                         long u = string_to_long(argv[i]+1);
                         if (u > 0)
