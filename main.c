@@ -193,7 +193,7 @@ void help(void)
            "args:\n"
            "-h : This help message\n"
            "-i [bchHrsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin\n"
-           "-o [bchHsn] <file-path|-> [separator] [tokens-to-new-line] : Writes a file out, - to wite to stdout\n"
+           "-o [bchHsn] <file-path|-> [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout\n"
            "\n"
            "Modes:\n"
            "b : Binary (Default)\n"

@@ -14,7 +14,7 @@ It also supports ranges from inputs with support for using stdout and stdin!
     args:
     -h : This help message
     -i [bchHrsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin
-    -o [bchHsn] <file-path|-> [separator] [tokens-to-new-line] : Writes a file out, - to wite to stdout
+    -o [bchHsn] <file-path|-> [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout
     
     Modes:
     b : Binary (Default)
