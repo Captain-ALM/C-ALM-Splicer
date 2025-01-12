@@ -35,25 +35,10 @@ int main(int argc, char *argv[])
             bool expectTTNL = false;
             size_t insL = 1;
             size_t insC = 0;
+            bool inPathError = false;
             for (size_t i = 1; i < argc; ++i)
             {
-                if (*argv[i] == '-' && !fileNext && !expectRange)
-                {
-                    if (strcmp(argv[i], "-i") == 0)
-                    {
-                        isOut = false;
-                    }
-                    else if (strcmp(argv[i], "-o") == 0)
-                    {
-                        isOut = true;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                    settingsNext = true;
-                }
-                else if (settingsNext)
+                if (settingsNext)
                 {
                     settingsNext = false;
                     expectRange = false;
@@ -156,9 +141,49 @@ int main(int argc, char *argv[])
                     if (tc > -1)
                         c->tokensToNewLine = (size_t) tc;
                 }
+                else if (*argv[i] == '-')
+                {
+                    if (c != null && c->filePath == null)
+                    {
+                        if (isOut)
+                        {
+                            if (out != null)
+                                free(out);
+                            out = null;
+                        }
+                        else
+                            inPathError = true;
+                        break;
+                    }
+                    if (strcmp(argv[i], "-i") == 0)
+                    {
+                        isOut = false;
+                    }
+                    else if (strcmp(argv[i], "-o") == 0)
+                    {
+                        isOut = true;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    settingsNext = true;
+                }
             }
 
-            if (out == null || insC == 0)
+            if (!inPathError && c != null && c->filePath == null)
+            {
+                if (isOut)
+                {
+                    if (out != null)
+                        free(out);
+                    out = null;
+                }
+                else
+                    inPathError = true;
+            }
+
+            if (out == null || insC == 0 || inPathError)
             {
                 for (size_t i = 0; i < insC; ++i)
                     free(ins[i]);
@@ -212,6 +237,12 @@ void help(void)
            "\n"
            "tokens-to-new-line:\n"
            "0 : n : Number of tokens per line, 0 for no new lines\n"
+           "\n"
+           "Exit Codes:\n"
+           "0 : Completed\n"
+           "1 : Aborted\n"
+           "2 : Input Missing\n"
+           "3 : Output Missing\n"
            "\n");
 }
 

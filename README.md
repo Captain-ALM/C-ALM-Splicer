@@ -33,4 +33,10 @@ It also supports ranges from inputs with support for using stdout and stdin!
     
     tokens-to-new-line:
     0 : n : Number of tokens per line, 0 for no new lines
+
+    Exit Codes:
+    0 : Completed
+    1 : Aborted
+    2 : Input Missing
+    3 : Output Missing
     
