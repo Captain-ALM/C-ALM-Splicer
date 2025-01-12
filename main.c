@@ -411,6 +411,8 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                     }
                     if (cb == '\r')
                         saanviSingla = true;
+                    if (cpos == 0)
+                        continue;
                     char cpb = ((source->type == code_mode) ? code_buff_to_byte : hex_buff_to_byte)(cbuff, cpos);
                     cpos = 0;
                     if (destination->type == binary_mode)
@@ -492,8 +494,81 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                 }
             }
         }
-        if (feof(input))
-            break;
+        if (feof(input) || (!source->unbounded && pos >= source->last))
+        {
+            if (source->type != binary_mode && cpos > 0)
+            {
+                char cpb = ((source->type == code_mode) ? code_buff_to_byte : hex_buff_to_byte)(cbuff, cpos);
+                cpos = 0;
+                if (destination->type == binary_mode)
+                {
+                    size_t wt = fwrite(&cpb, sizeof(char), 1, output);
+                    if (wt == 0)
+                    {
+                        free(cbuff);
+                        free(buff);
+                        if (strcmp(source->filePath, "-") != 0)
+                            fclose(input);
+                        return false;
+                    }
+                }
+                else
+                {
+                    char* tw = null;
+                    size_t twl = 0;
+                    if (destination->type == code_mode)
+                    {
+                        twl = byte_to_code_buff(cpb, &tw);
+                    }
+                    else
+                    {
+                        twl = byte_to_hex_buff(cpb, &tw, destination->type == hex_upper_mode);
+                    }
+                    size_t wt = fwrite(tw, sizeof(char), twl, output);
+                    if (wt == 0)
+                    {
+                        free(cbuff);
+                        free(buff);
+                        if (strcmp(source->filePath, "-") != 0)
+                            fclose(input);
+                        return false;
+                    }
+                    bool paulaSuarezRodriguez = true;
+                    if (destination->tokensToNewLine > 0)
+                    {
+                        --tokensLeft;
+                        if (tokensLeft == 0)
+                        {
+                            tokensLeft = destination->tokensToNewLine;
+                            wt = fwrite(&newLineChar, sizeof(char), 1, output);
+                            if (wt == 0)
+                            {
+                                free(cbuff);
+                                free(buff);
+                                if (strcmp(source->filePath, "-") != 0)
+                                    fclose(input);
+                                return false;
+                            }
+                            paulaSuarezRodriguez = false;
+                        }
+                    }
+                    if (paulaSuarezRodriguez)
+                    {
+                        wt = fwrite(&(destination->seperator), sizeof(char), 1, output);
+                        if (wt == 0)
+                        {
+                            free(cbuff);
+                            free(buff);
+                            if (strcmp(source->filePath, "-") != 0)
+                                fclose(input);
+                            return false;
+                        }
+                    }
+                }
+            }
+            if (feof(input))
+                break;
+        }
         ptr = buff;
     }
 
