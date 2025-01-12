@@ -2,7 +2,7 @@
 
 Splicing all those files!
 
-This program is designed for binary manipulation and can convert between binary, denary and hexadecimal!
+This program is designed for binary manipulation and can convert between binary, denary, octal and hexadecimal!
 It also supports ranges from inputs with support for using stdout and stdin!
 
 ## Usage:
@@ -13,14 +13,15 @@ It also supports ranges from inputs with support for using stdout and stdin!
     
     args:
     -h : This help message
-    -i [bchHrsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin
-    -o [bchHsn] <file-path|-> [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout
+    -i [bchHorsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin
+    -o [bchHosn] <file-path|-> [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout
     
     Modes:
     b : Binary (Default)
-    c : ASCII Integer Code
+    c : ASCII Integer Code (Denary)
     h : Hexadecimal (Lower case)
     H : Hexadecimal (Upper case)
+    o : Octal
     
     range:
     start-end : r : Specify a range from start (inclusive) to end (exclusive)
