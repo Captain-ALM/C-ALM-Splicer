@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
                     while (*ptr != '\0')
                     {
                         char cc = *(ptr++);
-                        if (cc == binary_mode || cc == code_mode || cc == hex_mode || cc == hex_upper_mode)
+                        if (cc == binary_mode || cc == code_mode || cc == hex_mode || cc == hex_upper_mode || cc == oct_mode)
                         {
                             c->type = cc;
                         }
@@ -217,14 +217,15 @@ void help(void)
            "\n"
            "args:\n"
            "-h : This help message\n"
-           "-i [bchHrsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin\n"
-           "-o [bchHsn] <file-path|-> [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout\n"
+           "-i [bchHorsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin\n"
+           "-o [bchHosn] <file-path|-> [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout\n"
            "\n"
            "Modes:\n"
            "b : Binary (Default)\n"
-           "c : ASCII Integer Code\n"
+           "c : ASCII Integer Code (Denary)\n"
            "h : Hexadecimal (Lower case)\n"
            "H : Hexadecimal (Upper case)\n"
+           "o : Octal\n"
            "\n"
            "range:\n"
            "start-end : r : Specify a range from start (inclusive) to end (exclusive)\n"
@@ -349,9 +350,9 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
             {
                 char* tw = null;
                 size_t twl = 0;
-                if (destination->type == code_mode)
+                if (destination->type == code_mode || destination->type == oct_mode)
                 {
-                    twl = byte_to_code_buff(*(ptr++), &tw);
+                    twl = ((destination->type == code_mode) ? byte_to_code_buff : byte_to_oct_buff)(*(ptr++), &tw);
                 }
                 else
                 {
@@ -413,7 +414,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                         saanviSingla = true;
                     if (cpos == 0)
                         continue;
-                    char cpb = ((source->type == code_mode) ? code_buff_to_byte : hex_buff_to_byte)(cbuff, cpos);
+                    char cpb = ((source->type == code_mode) ? code_buff_to_byte : ((source->type == oct_mode) ? oct_buff_to_byte : hex_buff_to_byte))(cbuff, cpos);
                     cpos = 0;
                     if (destination->type == binary_mode)
                     {
@@ -431,9 +432,9 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                     {
                         char* tw = null;
                         size_t twl = 0;
-                        if (destination->type == code_mode)
+                        if (destination->type == code_mode || destination->type == oct_mode)
                         {
-                            twl = byte_to_code_buff(cpb, &tw);
+                            twl = ((destination->type == code_mode) ? byte_to_code_buff : byte_to_oct_buff)(cpb, &tw);
                         }
                         else
                         {
@@ -498,7 +499,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
         {
             if (source->type != binary_mode && cpos > 0)
             {
-                char cpb = ((source->type == code_mode) ? code_buff_to_byte : hex_buff_to_byte)(cbuff, cpos);
+                char cpb = ((source->type == code_mode) ? code_buff_to_byte : ((source->type == oct_mode) ? oct_buff_to_byte : hex_buff_to_byte))(cbuff, cpos);
                 cpos = 0;
                 if (destination->type == binary_mode)
                 {
@@ -516,9 +517,9 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                 {
                     char* tw = null;
                     size_t twl = 0;
-                    if (destination->type == code_mode)
+                    if (destination->type == code_mode || destination->type == oct_mode)
                     {
-                        twl = byte_to_code_buff(cpb, &tw);
+                        twl = ((destination->type == code_mode) ? byte_to_code_buff : byte_to_oct_buff)(cpb, &tw);
                     }
                     else
                     {

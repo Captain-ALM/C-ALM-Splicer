@@ -8,6 +8,7 @@
 #define code_mode 'c'
 #define hex_mode 'h'
 #define hex_upper_mode 'H'
+#define oct_mode 'o'
 
 typedef struct {
     char* filePath;

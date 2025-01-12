@@ -44,6 +44,16 @@ char code_buff_to_byte(const char* buff, size_t len) {
     return val;
 }
 
+char oct_buff_to_byte(const char* buff, size_t len) {
+    char val = 0;
+    size_t mult = 1;
+    for (size_t i = len - 1; i < len; --i) {
+        val += oct_to_int(buff[i]) * mult;
+        mult*=8;
+    }
+    return val;
+}
+
 char hex_buff_to_byte(const char* buff, size_t len) {
     char val = 0;
     size_t shift = 0;
@@ -67,6 +77,19 @@ size_t byte_to_code_buff(char byte, char** buff) {
     return sz;
 }
 
+size_t byte_to_oct_buff(char byte, char** buff) {
+    unsigned char byteS = (unsigned char) byte;
+    size_t sz = (byteS > 63) ? 3 : ((byteS > 7) ? 2 : 1);
+    *buff = malloc(sizeof(char)*sz);
+    size_t mult = pow_int(8, sz - 1);
+    for (size_t i = 0; i < sz; ++i) {
+        (*buff)[i] = ((size_t) byteS / mult) + 48;
+        byteS = (size_t) byteS % mult;
+        mult /= 8;
+    }
+    return sz;
+}
+
 size_t byte_to_hex_buff(char byte, char** buff, bool upper) {
     *buff = malloc(sizeof(char)*2);
     (*buff)[0] = (upper ? int_to_hex_upper : int_to_hex)((byte>>4)&15);
@@ -79,6 +102,13 @@ char code_to_int(char code) {
         return 0;
     }
     return code - 48;
+}
+
+char oct_to_int(char oct) {
+    if (oct < 48 || oct > 55) {
+        return 0;
+    }
+    return oct - 48;
 }
 
 char hex_to_int(char hex) {
