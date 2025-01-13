@@ -27,7 +27,7 @@ It also supports ranges from inputs with support for using stdout and stdin!
     start-end : r : Specify a range from start (inclusive) to end (exclusive)
     
     separator:
-    " " : s : Specify the separator between tokens for c, h and H modes
+    " " : s : Specify the separator between tokens for o, c, h and H modes
     
     buffer-size:
     8192 : z : Size of the copy buffer

@@ -231,7 +231,7 @@ void help(void)
            "start-end : r : Specify a range from start (inclusive) to end (exclusive)\n"
            "\n"
            "separator:\n"
-           "\" \" : s : Specify the separator between tokens for c, h and H modes\n"
+           "\" \" : s : Specify the separator between tokens for o, c, h and H modes\n"
            "\n"
            "buffer-size:\n"
            "8192 : z : Size of the copy buffer\n"
