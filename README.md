@@ -9,12 +9,12 @@ It also supports ranges from inputs with support for using stdout and stdin!
     
     C-ALM-Splicer <args...>
     
-    (C) Captain ALM 2025 - BSD 3-Clause License
+    (C) Captain ALM 2026 - BSD 3-Clause License
     
     args:
     -h : This help message
     -i [bchHorsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin
-    -o [bchHosn] <file-path|-> [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout
+    -o [bchHorsn] <file-path|-> [range] [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout
     
     Modes:
     b : Binary (Default)
