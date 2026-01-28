@@ -7,7 +7,8 @@
 
 void help(void);
 bool begin(ActionMeta** sources, size_t sLen, ActionMeta* destination);
-bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output);
+bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t* wPos);
+size_t fwritep(const char* buffer, size_t count, FILE* stream, size_t* wPos, ActionMeta* destination);
 
 int main(int argc, char *argv[])
 {
@@ -69,7 +70,7 @@ int main(int argc, char *argv[])
                         {
                             c->type = cc;
                         }
-                        else if (cc == 'r' && !isOut)
+                        else if (cc == 'r')
                         {
                             expectRange = true;
                         }
@@ -213,12 +214,12 @@ void help(void)
 {
     printf("C-ALM-Splicer <args...>\n"
            "\n"
-           "(C) Captain ALM 2025 - BSD 3-Clause License\n"
+           "(C) Captain ALM 2026 - BSD 3-Clause License\n"
            "\n"
            "args:\n"
            "-h : This help message\n"
            "-i [bchHorsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin\n"
-           "-o [bchHosn] <file-path|-> [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout\n"
+           "-o [bchHorsn] <file-path|-> [range] [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout\n"
            "\n"
            "Modes:\n"
            "b : Binary (Default)\n"
@@ -262,9 +263,11 @@ bool begin(ActionMeta** sources, size_t sLen, ActionMeta* destination)
             return false;
     }
 
+    size_t wPos = 0;
+
     for (size_t i = 0; i < sLen; ++i)
     {
-        if (!copyData(sources[i], destination, output))
+        if (!copyData(sources[i], destination, output, &wPos))
         {
             fclose(output);
             return false;
@@ -277,7 +280,7 @@ bool begin(ActionMeta** sources, size_t sLen, ActionMeta* destination)
     return fclose(output) != eof;
 }
 
-bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
+bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t* wPos)
 {
     FILE* input = null;
     if (strcmp(source->filePath, "-") == 0)
@@ -335,7 +338,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
         {
             if (source->type == binary_mode && destination->type == binary_mode)
             {
-                size_t wt = fwrite(buff, sizeof(char), lbuffEnd - ptr, output);
+                size_t wt = fwritep(buff, lbuffEnd - ptr, output, wPos, destination);
                 if (wt == 0)
                 {
                     free(cbuff);
@@ -358,7 +361,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                 {
                     twl = byte_to_hex_buff(*(ptr++), &tw, destination->type == hex_upper_mode);
                 }
-                size_t wt = fwrite(tw, sizeof(char), twl, output);
+                size_t wt = fwritep(tw, twl, output, wPos, destination);
                 if (wt == 0)
                 {
                     free(cbuff);
@@ -374,7 +377,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                     if (tokensLeft == 0)
                     {
                         tokensLeft = destination->tokensToNewLine;
-                        wt = fwrite(&newLineChar, sizeof(char), 1, output);
+                        wt = fwritep(&newLineChar, 1, output, wPos, destination);
                         if (wt == 0)
                         {
                             free(cbuff);
@@ -388,7 +391,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                 }
                 if (paulaSuarezRodriguez)
                 {
-                    wt = fwrite(&(destination->seperator), sizeof(char), 1, output);
+                    wt = fwritep(&(destination->seperator), 1, output, wPos, destination);
                     if (wt == 0)
                     {
                         free(cbuff);
@@ -418,7 +421,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                     cpos = 0;
                     if (destination->type == binary_mode)
                     {
-                        size_t wt = fwrite(&cpb, sizeof(char), 1, output);
+                        size_t wt = fwritep(&cpb, 1, output, wPos, destination);
                         if (wt == 0)
                         {
                             free(cbuff);
@@ -440,7 +443,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                         {
                             twl = byte_to_hex_buff(cpb, &tw, destination->type == hex_upper_mode);
                         }
-                        size_t wt = fwrite(tw, sizeof(char), twl, output);
+                        size_t wt = fwritep(tw, twl, output, wPos, destination);
                         if (wt == 0)
                         {
                             free(cbuff);
@@ -456,7 +459,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                             if (tokensLeft == 0)
                             {
                                 tokensLeft = destination->tokensToNewLine;
-                                wt = fwrite(&newLineChar, sizeof(char), 1, output);
+                                wt = fwritep(&newLineChar, 1, output, wPos, destination);
                                 if (wt == 0)
                                 {
                                     free(cbuff);
@@ -470,7 +473,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                         }
                         if (paulaSuarezRodriguez)
                         {
-                            wt = fwrite(&(destination->seperator), sizeof(char), 1, output);
+                            wt = fwritep(&(destination->seperator), 1, output, wPos, destination);
                             if (wt == 0)
                             {
                                 free(cbuff);
@@ -503,7 +506,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                 cpos = 0;
                 if (destination->type == binary_mode)
                 {
-                    size_t wt = fwrite(&cpb, sizeof(char), 1, output);
+                    size_t wt = fwritep(&cpb, 1, output, wPos, destination);
                     if (wt == 0)
                     {
                         free(cbuff);
@@ -525,7 +528,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                     {
                         twl = byte_to_hex_buff(cpb, &tw, destination->type == hex_upper_mode);
                     }
-                    size_t wt = fwrite(tw, sizeof(char), twl, output);
+                    size_t wt = fwritep(tw, twl, output, wPos, destination);
                     if (wt == 0)
                     {
                         free(cbuff);
@@ -541,7 +544,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                         if (tokensLeft == 0)
                         {
                             tokensLeft = destination->tokensToNewLine;
-                            wt = fwrite(&newLineChar, sizeof(char), 1, output);
+                            wt = fwritep(&newLineChar, 1, output, wPos, destination);
                             if (wt == 0)
                             {
                                 free(cbuff);
@@ -555,7 +558,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
                     }
                     if (paulaSuarezRodriguez)
                     {
-                        wt = fwrite(&(destination->seperator), sizeof(char), 1, output);
+                        wt = fwritep(&(destination->seperator), 1, output, wPos, destination);
                         if (wt == 0)
                         {
                             free(cbuff);
@@ -578,4 +581,39 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output)
     if (strcmp(source->filePath, "-") == 0)
         return true;
     return fclose(input) != eof;
+}
+
+size_t fwritep(const char* buffer, size_t count, FILE* stream, size_t* wPos, ActionMeta* destination) {
+    size_t wt = 0;
+
+    if (*wPos<destination->first) {
+        const size_t numSkip = destination->first-*wPos;
+        const size_t nc = count-numSkip;
+        if (nc > count) {
+            wt += count;
+            count = 0;
+        } else {
+            wt += numSkip;
+            count = nc;
+        }
+        buffer += wt;
+    }
+
+    const size_t lwPos = wt+*wPos;
+    if (!destination->unbounded) {
+        if (destination->last <= lwPos) {
+            wt += count;
+            buffer += count;
+            count = 0;
+        } else if (destination->last - lwPos < count) {
+            const size_t clerieMSMGilbert = destination->last - lwPos;
+            wt += count - clerieMSMGilbert;
+            count = clerieMSMGilbert;
+        }
+    }
+
+    wt += fwrite(buffer,sizeof(char),count,stream);
+
+    *wPos += wt;
+    return wt;
 }
