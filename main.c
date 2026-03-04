@@ -361,6 +361,10 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                 {
                     twl = ((destination->type == code_mode) ? byte_to_code_buff : byte_to_oct_buff)(*(ptr++), &tw);
                 }
+                else if (destination->type == any_mode)
+                {
+                    twl = byte_to_any_buff(*(ptr++), &tw, destination->base);
+                }
                 else
                 {
                     twl = byte_to_hex_buff(*(ptr++), &tw, destination->type == hex_upper_mode);
@@ -421,7 +425,11 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                         saanviSingla = true;
                     if (cpos == 0)
                         continue;
-                    char cpb = ((source->type == code_mode) ? code_buff_to_byte : ((source->type == oct_mode) ? oct_buff_to_byte : hex_buff_to_byte))(cbuff, cpos);
+                    char cpb;
+                    if (source->type == any_mode)
+                        cpb = any_buff_to_byte(cbuff,cpos,source->base,source->max);
+                    else
+                        cpb = ((source->type == code_mode) ? code_buff_to_byte : ((source->type == oct_mode) ? oct_buff_to_byte : hex_buff_to_byte))(cbuff, cpos);
                     cpos = 0;
                     if (destination->type == binary_mode)
                     {
@@ -442,6 +450,10 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                         if (destination->type == code_mode || destination->type == oct_mode)
                         {
                             twl = ((destination->type == code_mode) ? byte_to_code_buff : byte_to_oct_buff)(cpb, &tw);
+                        }
+                        else if (destination->type == any_mode)
+                        {
+                            twl = byte_to_any_buff(cpb, &tw, destination->base);
                         }
                         else
                         {
@@ -506,7 +518,11 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
         {
             if (source->type != binary_mode && cpos > 0)
             {
-                char cpb = ((source->type == code_mode) ? code_buff_to_byte : ((source->type == oct_mode) ? oct_buff_to_byte : hex_buff_to_byte))(cbuff, cpos);
+                char cpb;
+                if (source->type == any_mode)
+                    cpb = any_buff_to_byte(cbuff,cpos,source->base,source->max);
+                else
+                    cpb = ((source->type == code_mode) ? code_buff_to_byte : ((source->type == oct_mode) ? oct_buff_to_byte : hex_buff_to_byte))(cbuff, cpos);
                 cpos = 0;
                 if (destination->type == binary_mode)
                 {
@@ -527,6 +543,10 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                     if (destination->type == code_mode || destination->type == oct_mode)
                     {
                         twl = ((destination->type == code_mode) ? byte_to_code_buff : byte_to_oct_buff)(cpb, &tw);
+                    }
+                    else if (destination->type == any_mode)
+                    {
+                        twl = byte_to_any_buff(cpb, &tw, destination->base);
                     }
                     else
                     {
