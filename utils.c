@@ -122,8 +122,10 @@ size_t byte_to_any_buff(char byte, char** buff, char base) {
         size_t mult = pow_int(base, sz-1);
         for (size_t i = 0; i < sz; ++i) {
             (*buff)[i] = ((size_t) byteS / mult) + 48;
-            if ((*buff)[i] > 'Z')
+            if ((*buff)[i] > '9')
                 (*buff)[i] += 7;
+            if ((*buff)[i] > 'Z')
+                (*buff)[i] += 6;
             byteS = (size_t) byteS % mult;
             mult /= base;
         }
@@ -158,28 +160,31 @@ char oct_to_int(char oct) {
 }
 
 char max_any_to_int(char base) {
-    if (base > 36) {
+    if (base > 10)
+        base += 8;
+    if (base > 36)
         base += 7;
-    }
     return '0'-1+base;
 }
 
 char any_to_int(char val, char max) {
-    if (val < 48 || val > max || val > 'z' || (val > 'Z' && val < 'a')) {
+    if (val < '0' || (val > '9' && val < 'A') || val > max || val > 'z' || (val > 'Z' && val < 'a'))
         return 0;
-    } else if (val > 'Z') {
+    if (val > 'Z')
+        val -= 6;
+    if (val > '9')
         val -= 7;
-    }
-    return val - 48;
+    return val - '0';
 }
 
 char anyi_to_int(char val, char max) {
-    if (val < 48 || val > max || val > 'z' || (val > 'Z' && val < 'a')) {
+    if (val < '0' || (val > '9' && val < 'A') || val > max || val > 'z' || (val > 'Z' && val < 'a'))
         return 0;
-    } else if (val > 'Z') {
-        val -= 7 - 26;
-    }
-    return val - 48;
+    else if (val > 'Z')
+        val -= 6 - 26;
+    else if (val > '9')
+        val -= 7;
+    return val - '0';
 }
 
 char hex_to_int(char hex) {

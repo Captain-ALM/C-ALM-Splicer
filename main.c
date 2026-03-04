@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #include "utils.h"
 #include "actionmeta.h"
@@ -41,6 +40,7 @@ int main(int argc, char *argv[])
             char* bases = malloc(sizeof(char));
             size_t basesL = 1;
             size_t basesC = 0;
+            size_t outI = 0;
             bool inPathError = false;
 
             if (!ins || !bases)
@@ -77,6 +77,7 @@ int main(int argc, char *argv[])
                         if (out != null)
                             free(out);
                         out = c;
+                        outI = insC;
                     }
                     else if (cmdMode == cmd_in)
                     {
@@ -133,7 +134,7 @@ int main(int argc, char *argv[])
                         }
                     }
                     if (basesC < basesL)
-                        bases[basesC++] = (bass > CHAR_MAX) ? CHAR_MAX : ((char)bass);
+                        bases[basesC++] = (bass > 63) ? 63 : ((char)bass);
                 }
                 else if (fileNext)
                 {
@@ -250,11 +251,23 @@ int main(int argc, char *argv[])
             size_t j = 0;
             for (size_t i = 0; i < insC && j < basesC; ++i)
             {
+                if (outI == i && out->type == any_mode)
+                {
+                    out->base = bases[j];
+                    out->max = max_any_to_int(bases[j++]);
+                }
+                if (j >= basesC)
+                    break;
                 if (ins[i]->type == any_mode)
                 {
                     ins[i]->base = bases[j];
                     ins[i]->max = max_any_to_int(bases[j++]);
                 }
+            }
+
+            if (outI == insC && out->type == any_mode && j < basesC) {
+                out->base = bases[j];
+                out->max = max_any_to_int(bases[j]);
             }
 
             bool ok = begin(ins, insC, out);
@@ -280,8 +293,8 @@ void help(void)
            "\n"
            "args:\n"
            "-h : This help message\n"
-           "-i [abchHorsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin\n"
-           "-o [abchHorsn] <file-path|-> [range] [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout\n"
+           "-i <[abchHorsz]> <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin\n"
+           "-o <[abchHorsn]> <file-path|-> [range] [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout\n"
            "-b <base> : Sets the base used for the any mode\n"
            "\n"
            "Modes:\n"
@@ -290,7 +303,7 @@ void help(void)
            "h : Hexadecimal (Lower case)\n"
            "H : Hexadecimal (Upper case)\n"
            "o : Octal\n"
-           "a : Any base, base set from -b option\n"
+           "a : Any base (2-63), base set from -b option\n"
            "\n"
            "Base options are read in order and are paired with each used base mode\n"
            "\n"
@@ -307,10 +320,11 @@ void help(void)
            "0 : n : Number of tokens per line, 0 for no new lines\n"
            "\n"
            "Exit Codes:\n"
-           "0 : Completed\n"
-           "1 : Aborted\n"
-           "2 : Input Missing\n"
-           "3 : Output Missing\n"
+           "0  : Completed\n"
+           "1  : Aborted\n"
+           "2  : Input Missing\n"
+           "3  : Output Missing\n"
+           "63 : Memory Error at init\n"
            "\n");
 }
 

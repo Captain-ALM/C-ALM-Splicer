@@ -13,8 +13,8 @@ It also supports ranges from inputs with support for using stdout and stdin!
     
     args:
     -h : This help message
-    -i [abchHorsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin
-    -o [abchHorsn] <file-path|-> [range] [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout
+    -i <[abchHorsz]> <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin
+    -o <[abchHorsn]> <file-path|-> [range] [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout
     -b <base> : Sets the base used for the any mode
     
     Modes:
@@ -23,7 +23,7 @@ It also supports ranges from inputs with support for using stdout and stdin!
     h : Hexadecimal (Lower case)
     H : Hexadecimal (Upper case)
     o : Octal
-    a : Any base, base set from -b option
+    a : Any base (2-63), base set from -b option
     
     Base options are read in order and are paired with each used base mode
     
@@ -40,8 +40,9 @@ It also supports ranges from inputs with support for using stdout and stdin!
     0 : n : Number of tokens per line, 0 for no new lines
 
     Exit Codes:
-    0 : Completed
-    1 : Aborted
-    2 : Input Missing
-    3 : Output Missing
+    0  : Completed
+    1  : Aborted
+    2  : Input Missing
+    3  : Output Missing
+    63 : Memory Error at init
     

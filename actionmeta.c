@@ -15,7 +15,7 @@ ActionMeta* newActionMeta(void) {
         toRet->first = 0;
         toRet->last = 0;
         toRet->unbounded = true;
-        toRet->base = 62;
+        toRet->base = 63;
         toRet->max = 'z';
     }
     return toRet;

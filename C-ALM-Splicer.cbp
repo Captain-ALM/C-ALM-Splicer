@@ -36,6 +36,7 @@
 		</Unit>
 		<Unit filename="actionmeta.h" />
 		<Unit filename="bools.h" />
+		<Unit filename="cmdln.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
