@@ -9,6 +9,7 @@
 #define hex_mode 'h'
 #define hex_upper_mode 'H'
 #define oct_mode 'o'
+#define any_mode 'a'
 
 typedef struct {
     char* filePath;
@@ -19,6 +20,8 @@ typedef struct {
     size_t first;
     size_t last;
     bool unbounded;
+    char base;
+    char max;
 } ActionMeta;
 
 ActionMeta* newActionMeta(void);

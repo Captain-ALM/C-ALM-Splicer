@@ -54,6 +54,16 @@ char oct_buff_to_byte(const char* buff, size_t len) {
     return val;
 }
 
+char any_buff_to_byte(const char* buff, size_t len, char base, char max) {
+    char val = 0;
+    size_t mult = 1;
+    for (size_t i = len - 1; i < len; --i) {
+        val += ((max > 'Z') ? any_to_int : anyi_to_int)(buff[i],max) * mult;
+        mult*=base;
+    }
+    return val;
+}
+
 char hex_buff_to_byte(const char* buff, size_t len) {
     char val = 0;
     size_t shift = 0;
@@ -90,6 +100,26 @@ size_t byte_to_oct_buff(char byte, char** buff) {
     return sz;
 }
 
+size_t byte_to_any_buff(char byte, char** buff, char base) {
+    unsigned char byteS = (unsigned char) byte;
+    size_t sz = 1;
+    size_t msz = base;
+    while (byteS>=msz) {
+        msz*=base;
+        ++sz;
+    }
+    *buff = malloc(sizeof(char)*sz);
+    size_t mult = pow_int(base, sz-1);
+    for (size_t i = 0; i < sz; ++i) {
+        (*buff)[i] = ((size_t) byteS / mult) + 48;
+        if ((*buff)[i] > 'Z')
+            (*buff)[i] += 7;
+        byteS = (size_t) byteS % mult;
+        mult /= base;
+    }
+    return sz;
+}
+
 size_t byte_to_hex_buff(char byte, char** buff, bool upper) {
     *buff = malloc(sizeof(char)*2);
     (*buff)[0] = (upper ? int_to_hex_upper : int_to_hex)((byte>>4)&15);
@@ -109,6 +139,31 @@ char oct_to_int(char oct) {
         return 0;
     }
     return oct - 48;
+}
+
+char max_any_to_int(char base) {
+    if (base > 36) {
+        base += 7;
+    }
+    return '0'-1+base;
+}
+
+char any_to_int(char val, char max) {
+    if (val < 48 || val > max || val > 'z' || (val > 'Z' && val < 'a')) {
+        return 0;
+    } else if (val > 'Z') {
+        val -= 7;
+    }
+    return val - 48;
+}
+
+char anyi_to_int(char val, char max) {
+    if (val < 48 || val > max || val > 'z' || (val > 'Z' && val < 'a')) {
+        return 0;
+    } else if (val > 'Z') {
+        val -= 7 - 26;
+    }
+    return val - 48;
 }
 
 char hex_to_int(char hex) {

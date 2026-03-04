@@ -3,7 +3,7 @@
 
 #define BOOLS_H_INCLUDED
 
-#define bool int
+#define bool char
 #define false 0
 #define true 1
 

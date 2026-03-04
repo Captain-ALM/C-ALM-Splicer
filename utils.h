@@ -18,10 +18,16 @@ size_t pow_int(size_t base, size_t exponent);
 
 char code_buff_to_byte(const char* buff, size_t len);
 char oct_buff_to_byte(const char* buff, size_t len);
+char any_buff_to_byte(const char* buff, size_t len, char base, char);
 char hex_buff_to_byte(const char* buff, size_t len);
 size_t byte_to_code_buff(char byte, char** buff);
 size_t byte_to_oct_buff(char byte, char** buff);
 size_t byte_to_hex_buff(char byte, char** buff, bool upper);
+
+size_t byte_to_any_buff(char byte, char** buff, char base);
+char max_any_to_int(char base);
+char any_to_int(char val, char);
+char anyi_to_int(char val, char);
 
 char code_to_int(char code);
 char oct_to_int(char oct);

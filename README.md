@@ -13,8 +13,9 @@ It also supports ranges from inputs with support for using stdout and stdin!
     
     args:
     -h : This help message
-    -i [bchHorsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin
-    -o [bchHorsn] <file-path|-> [range] [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout
+    -i [abchHorsz] <file-path|-> [range] [separator] [buffer-size] : Reads a file in, - to read from stdin
+    -o [abchHorsn] <file-path|-> [range] [separator] [tokens-to-new-line] : Writes a file out, - to write to stdout
+    -b <base> : Sets the base used for the any mode
     
     Modes:
     b : Binary (Default)
@@ -22,6 +23,9 @@ It also supports ranges from inputs with support for using stdout and stdin!
     h : Hexadecimal (Lower case)
     H : Hexadecimal (Upper case)
     o : Octal
+    a : Any base, base set from -b option
+    
+    Base options are read in order and are paired with each used base mode
     
     range:
     start-end : r : Specify a range from start (inclusive) to end (exclusive)
