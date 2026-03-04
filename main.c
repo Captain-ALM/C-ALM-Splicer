@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include "utils.h"
 #include "actionmeta.h"
+#include "cmdln.h"
 
 void help(void);
 bool begin(ActionMeta** sources, size_t sLen, ActionMeta* destination);
@@ -28,7 +30,7 @@ int main(int argc, char *argv[])
             ActionMeta* out = null;
             ActionMeta** ins = malloc(sizeof(ActionMeta*));
             bool settingsNext = false;
-            bool isOut = false;
+            cmdln cmdMode = false;
             bool fileNext = false;
             bool expectRange = false;
             bool expectSeperator = false;
@@ -36,10 +38,23 @@ int main(int argc, char *argv[])
             bool expectTTNL = false;
             size_t insL = 1;
             size_t insC = 0;
+            char* bases = malloc(sizeof(char));
+            size_t basesL = 1;
+            size_t basesC = 0;
             bool inPathError = false;
+
+            if (!ins || !bases)
+            {
+                if (ins)
+                    free(ins);
+                if (bases)
+                    free(bases);
+                return 63;
+            }
+
             for (size_t i = 1; i < argc; ++i)
             {
-                if (settingsNext)
+                if (settingsNext && cmdMode != cmd_base)
                 {
                     settingsNext = false;
                     expectRange = false;
@@ -47,26 +62,41 @@ int main(int argc, char *argv[])
                     expectBSz = false;
                     expectTTNL = false;
                     c = newActionMeta();
-                    if (isOut)
+                    if (!c)
+                    {
+                        for (size_t i = 0; i < insC; ++i)
+                            free(ins[i]);
+                        free(ins);
+                        if (out)
+                            free(out);
+                        free(bases);
+                        return 63;
+                    }
+                    if (cmdMode == cmd_out)
                     {
                         if (out != null)
                             free(out);
                         out = c;
                     }
-                    else
+                    else if (cmdMode == cmd_in)
                     {
                         if (insC >= insL)
                         {
-                            ins = realloc(ins, sizeof(ActionMeta*)*insL*2);
-                            insL *= 2;
+                            ActionMeta** nIns = realloc(ins, sizeof(ActionMeta*)*insL*2);
+                            if (nIns)
+                            {
+                                ins = nIns;
+                                insL *= 2;
+                            }
                         }
-                        ins[insC++] = c;
+                        if (insC < insL)
+                            ins[insC++] = c;
                     }
                     char* ptr = argv[i];
                     while (*ptr != '\0')
                     {
                         char cc = *(ptr++);
-                        if (cc == binary_mode || cc == code_mode || cc == hex_mode || cc == hex_upper_mode || cc == oct_mode)
+                        if (cc == binary_mode || cc == code_mode || cc == hex_mode || cc == hex_upper_mode || cc == oct_mode || cc == any_mode)
                         {
                             c->type = cc;
                         }
@@ -78,16 +108,32 @@ int main(int argc, char *argv[])
                         {
                             expectSeperator = true;
                         }
-                        else if (cc == 'z' && !isOut)
+                        else if (cc == 'z' && cmdMode == cmd_in)
                         {
                             expectBSz = true;
                         }
-                        else if (cc == 'n' && isOut)
+                        else if (cc == 'n' && cmdMode == cmd_out)
                         {
                             expectTTNL = true;
                         }
                     }
                     fileNext = true;
+                }
+                else if (settingsNext && cmdMode == cmd_base)
+                {
+                    settingsNext = false;
+                    long bass = string_to_long(argv[i]);
+                    if (basesC >= basesL)
+                    {
+                        char* nBases = realloc(bases, sizeof(char)*basesL*2);
+                        if (nBases)
+                        {
+                            bases = nBases;
+                            basesL *= 2;
+                        }
+                    }
+                    if (basesC < basesL)
+                        bases[basesC++] = (bass > CHAR_MAX) ? CHAR_MAX : ((char)bass);
                 }
                 else if (fileNext)
                 {
@@ -146,23 +192,27 @@ int main(int argc, char *argv[])
                 {
                     if (c != null && c->filePath == null)
                     {
-                        if (isOut)
+                        if (cmdMode == cmd_out)
                         {
                             if (out != null)
                                 free(out);
                             out = null;
                         }
-                        else
+                        else if (cmdMode == cmd_in)
                             inPathError = true;
                         break;
                     }
                     if (strcmp(argv[i], "-i") == 0)
                     {
-                        isOut = false;
+                        cmdMode = cmd_in;
                     }
                     else if (strcmp(argv[i], "-o") == 0)
                     {
-                        isOut = true;
+                        cmdMode = cmd_out;
+                    }
+                    else if (strcmp(argv[i], "-b") == 0)
+                    {
+                        cmdMode = cmd_base;
                     }
                     else
                     {
@@ -174,13 +224,13 @@ int main(int argc, char *argv[])
 
             if (!inPathError && c != null && c->filePath == null)
             {
-                if (isOut)
+                if (cmdMode == cmd_out)
                 {
                     if (out != null)
                         free(out);
                     out = null;
                 }
-                else
+                else if (cmdMode == cmd_in)
                     inPathError = true;
             }
 
@@ -189,11 +239,22 @@ int main(int argc, char *argv[])
                 for (size_t i = 0; i < insC; ++i)
                     free(ins[i]);
                 free(ins);
+                free(bases);
                 if (out == null)
                     return 3;
                 else
                     free(out);
                 return 2;
+            }
+
+            size_t j = 0;
+            for (size_t i = 0; i < insC && j < basesC; ++i)
+            {
+                if (ins[i]->type == any_mode)
+                {
+                    ins[i]->base = bases[j];
+                    ins[i]->max = max_any_to_int(bases[j++]);
+                }
             }
 
             bool ok = begin(ins, insC, out);
@@ -202,6 +263,7 @@ int main(int argc, char *argv[])
                 free(ins[i]);
             free(ins);
             free(out);
+            free(bases);
 
             if (!ok)
                 return 1;
@@ -301,6 +363,11 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
 
     size_t pos = 0;
     char* buff = malloc(source->bufferSize*sizeof(char));
+    if (!buff)
+    {
+        fclose(input);
+        return false;
+    }
     while (pos < source->first)
     {
         size_t r_left = source->first - pos;
@@ -317,6 +384,12 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
 
     char* ptr = buff;
     char* cbuff = malloc(sizeof(char));
+    if (!cbuff)
+    {
+        free(buff);
+        fclose(input);
+        return false;
+    }
     size_t cpos = 0;
     size_t clen = 1;
     char cb = 0;
@@ -507,8 +580,19 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                         saanviSingla = false;
                     if (cpos >= clen)
                     {
-                        cbuff = realloc(cbuff, sizeof(char)*clen*2);
-                        clen *= 2;
+                        char* nCbuff = realloc(cbuff, sizeof(char)*clen*2);
+                        if (nCbuff)
+                        {
+                            cbuff = nCbuff;
+                            clen *= 2;
+                        }
+                        else
+                        {
+                            free(cbuff);
+                            free(buff);
+                            fclose(input);
+                            return false;
+                        }
                     }
                     cbuff[cpos++] = cb;
                 }

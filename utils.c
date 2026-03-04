@@ -78,26 +78,34 @@ size_t byte_to_code_buff(char byte, char** buff) {
     unsigned char byteS = (unsigned char) byte;
     size_t sz = (byteS > 99) ? 3 : ((byteS > 9) ? 2 : 1);
     *buff = malloc(sizeof(char)*sz);
-    size_t mult = pow_int(10, sz - 1);
-    for (size_t i = 0; i < sz; ++i) {
-        (*buff)[i] = ((size_t) byteS / mult) + 48;
-        byteS = (size_t) byteS % mult;
-        mult /= 10;
+    if (*buff)
+    {
+        size_t mult = pow_int(10, sz - 1);
+        for (size_t i = 0; i < sz; ++i) {
+            (*buff)[i] = ((size_t) byteS / mult) + 48;
+            byteS = (size_t) byteS % mult;
+            mult /= 10;
+        }
+        return sz;
     }
-    return sz;
+    return 0;
 }
 
 size_t byte_to_oct_buff(char byte, char** buff) {
     unsigned char byteS = (unsigned char) byte;
     size_t sz = (byteS > 63) ? 3 : ((byteS > 7) ? 2 : 1);
     *buff = malloc(sizeof(char)*sz);
-    size_t mult = pow_int(8, sz - 1);
-    for (size_t i = 0; i < sz; ++i) {
-        (*buff)[i] = ((size_t) byteS / mult) + 48;
-        byteS = (size_t) byteS % mult;
-        mult /= 8;
+    if (*buff)
+    {
+        size_t mult = pow_int(8, sz - 1);
+        for (size_t i = 0; i < sz; ++i) {
+            (*buff)[i] = ((size_t) byteS / mult) + 48;
+            byteS = (size_t) byteS % mult;
+            mult /= 8;
+        }
+        return sz;
     }
-    return sz;
+    return 0;
 }
 
 size_t byte_to_any_buff(char byte, char** buff, char base) {
@@ -109,22 +117,30 @@ size_t byte_to_any_buff(char byte, char** buff, char base) {
         ++sz;
     }
     *buff = malloc(sizeof(char)*sz);
-    size_t mult = pow_int(base, sz-1);
-    for (size_t i = 0; i < sz; ++i) {
-        (*buff)[i] = ((size_t) byteS / mult) + 48;
-        if ((*buff)[i] > 'Z')
-            (*buff)[i] += 7;
-        byteS = (size_t) byteS % mult;
-        mult /= base;
+    if (*buff)
+    {
+        size_t mult = pow_int(base, sz-1);
+        for (size_t i = 0; i < sz; ++i) {
+            (*buff)[i] = ((size_t) byteS / mult) + 48;
+            if ((*buff)[i] > 'Z')
+                (*buff)[i] += 7;
+            byteS = (size_t) byteS % mult;
+            mult /= base;
+        }
+        return sz;
     }
-    return sz;
+    return 0;
 }
 
 size_t byte_to_hex_buff(char byte, char** buff, bool upper) {
     *buff = malloc(sizeof(char)*2);
-    (*buff)[0] = (upper ? int_to_hex_upper : int_to_hex)((byte>>4)&15);
-    (*buff)[1] = (upper ? int_to_hex_upper : int_to_hex)(byte&15);
-    return 2;
+    if (*buff)
+    {
+        (*buff)[0] = (upper ? int_to_hex_upper : int_to_hex)((byte>>4)&15);
+        (*buff)[1] = (upper ? int_to_hex_upper : int_to_hex)(byte&15);
+        return 2;
+    }
+    return 0;
 }
 
 char code_to_int(char code) {
