@@ -10,6 +10,7 @@ void help(void);
 bool begin(ActionMeta** sources, size_t sLen, ActionMeta* destination);
 bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t* wPos);
 size_t fwritep(const char* buffer, size_t count, FILE* stream, size_t* wPos, ActionMeta* destination);
+void clean_free(char* cbuff, char* buff, ActionMeta* source, FILE* input);
 
 int main(int argc, char *argv[])
 {
@@ -349,7 +350,8 @@ bool begin(ActionMeta** sources, size_t sLen, ActionMeta* destination)
     {
         if (!copyData(sources[i], destination, output, &wPos))
         {
-            fclose(output);
+            if (strcmp(destination->filePath, "-") != 0)
+                fclose(output);
             return false;
         }
         fflush(output);
@@ -379,7 +381,8 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
     char* buff = malloc(source->bufferSize*sizeof(char));
     if (!buff)
     {
-        fclose(input);
+        if (strcmp(source->filePath, "-") != 0)
+            fclose(input);
         return false;
     }
     while (pos < source->first)
@@ -401,7 +404,8 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
     if (!cbuff)
     {
         free(buff);
-        fclose(input);
+        if (strcmp(source->filePath, "-") != 0)
+            fclose(input);
         return false;
     }
     size_t cpos = 0;
@@ -417,10 +421,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
         size_t rd = fread(buff, sizeof(char), (size_t) ((r_left != 0 && r_left < source->bufferSize) ? r_left : source->bufferSize), input);
         if (rd == 0 && !feof(input))
         {
-            free(cbuff);
-            free(buff);
-            if (strcmp(source->filePath, "-") != 0)
-                fclose(input);
+            clean_free(cbuff, buff, source, input);
             return false;
         }
         pos += rd;
@@ -432,10 +433,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                 size_t wt = fwritep(buff, lbuffEnd - ptr, output, wPos, destination);
                 if (wt == 0)
                 {
-                    free(cbuff);
-                    free(buff);
-                    if (strcmp(source->filePath, "-") != 0)
-                        fclose(input);
+                    clean_free(cbuff, buff, source, input);
                     return false;
                 }
                 ptr += wt;
@@ -459,10 +457,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                 size_t wt = fwritep(tw, twl, output, wPos, destination);
                 if (wt == 0)
                 {
-                    free(cbuff);
-                    free(buff);
-                    if (strcmp(source->filePath, "-") != 0)
-                        fclose(input);
+                    clean_free(cbuff, buff, source, input);
                     return false;
                 }
                 bool paulaSuarezRodriguez = true;
@@ -475,10 +470,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                         wt = fwritep(&newLineChar, 1, output, wPos, destination);
                         if (wt == 0)
                         {
-                            free(cbuff);
-                            free(buff);
-                            if (strcmp(source->filePath, "-") != 0)
-                                fclose(input);
+                            clean_free(cbuff, buff, source, input);
                             return false;
                         }
                         paulaSuarezRodriguez = false;
@@ -489,10 +481,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                     wt = fwritep(&(destination->seperator), 1, output, wPos, destination);
                     if (wt == 0)
                     {
-                        free(cbuff);
-                        free(buff);
-                        if (strcmp(source->filePath, "-") != 0)
-                            fclose(input);
+                        clean_free(cbuff, buff, source, input);
                         return false;
                     }
                 }
@@ -523,10 +512,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                         size_t wt = fwritep(&cpb, 1, output, wPos, destination);
                         if (wt == 0)
                         {
-                            free(cbuff);
-                            free(buff);
-                            if (strcmp(source->filePath, "-") != 0)
-                                fclose(input);
+                            clean_free(cbuff, buff, source, input);
                             return false;
                         }
                     }
@@ -549,10 +535,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                         size_t wt = fwritep(tw, twl, output, wPos, destination);
                         if (wt == 0)
                         {
-                            free(cbuff);
-                            free(buff);
-                            if (strcmp(source->filePath, "-") != 0)
-                                fclose(input);
+                            clean_free(cbuff, buff, source, input);
                             return false;
                         }
                         bool paulaSuarezRodriguez = true;
@@ -565,10 +548,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                                 wt = fwritep(&newLineChar, 1, output, wPos, destination);
                                 if (wt == 0)
                                 {
-                                    free(cbuff);
-                                    free(buff);
-                                    if (strcmp(source->filePath, "-") != 0)
-                                        fclose(input);
+                                    clean_free(cbuff, buff, source, input);
                                     return false;
                                 }
                                 paulaSuarezRodriguez = false;
@@ -579,10 +559,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                             wt = fwritep(&(destination->seperator), 1, output, wPos, destination);
                             if (wt == 0)
                             {
-                                free(cbuff);
-                                free(buff);
-                                if (strcmp(source->filePath, "-") != 0)
-                                    fclose(input);
+                                clean_free(cbuff, buff, source, input);
                                 return false;
                             }
                         }
@@ -602,9 +579,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                         }
                         else
                         {
-                            free(cbuff);
-                            free(buff);
-                            fclose(input);
+                            clean_free(cbuff, buff, source, input);
                             return false;
                         }
                     }
@@ -627,10 +602,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                     size_t wt = fwritep(&cpb, 1, output, wPos, destination);
                     if (wt == 0)
                     {
-                        free(cbuff);
-                        free(buff);
-                        if (strcmp(source->filePath, "-") != 0)
-                            fclose(input);
+                        clean_free(cbuff, buff, source, input);
                         return false;
                     }
                 }
@@ -653,10 +625,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                     size_t wt = fwritep(tw, twl, output, wPos, destination);
                     if (wt == 0)
                     {
-                        free(cbuff);
-                        free(buff);
-                        if (strcmp(source->filePath, "-") != 0)
-                            fclose(input);
+                        clean_free(cbuff, buff, source, input);
                         return false;
                     }
                     bool paulaSuarezRodriguez = true;
@@ -669,10 +638,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                             wt = fwritep(&newLineChar, 1, output, wPos, destination);
                             if (wt == 0)
                             {
-                                free(cbuff);
-                                free(buff);
-                                if (strcmp(source->filePath, "-") != 0)
-                                    fclose(input);
+                                clean_free(cbuff, buff, source, input);
                                 return false;
                             }
                             paulaSuarezRodriguez = false;
@@ -683,10 +649,7 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                         wt = fwritep(&(destination->seperator), 1, output, wPos, destination);
                         if (wt == 0)
                         {
-                            free(cbuff);
-                            free(buff);
-                            if (strcmp(source->filePath, "-") != 0)
-                                fclose(input);
+                            clean_free(cbuff, buff, source, input);
                             return false;
                         }
                     }
@@ -738,4 +701,12 @@ size_t fwritep(const char* buffer, size_t count, FILE* stream, size_t* wPos, Act
 
     *wPos += wt;
     return wt;
+}
+
+void clean_free(char* cbuff, char* buff, ActionMeta* source, FILE* input)
+{
+    free(cbuff);
+    free(buff);
+    if (strcmp(source->filePath, "-") != 0)
+        fclose(input);
 }
