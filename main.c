@@ -6,11 +6,15 @@
 #include "actionmeta.h"
 #include "cmdln.h"
 
+char const newLineChar = '\n';
+
 void help(void);
 bool begin(ActionMeta** sources, size_t sLen, ActionMeta* destination);
 bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t* wPos);
 size_t fwritep(const char* buffer, size_t count, FILE* stream, size_t* wPos, ActionMeta* destination);
 void clean_free(char* cbuff, char* buff, ActionMeta* source, FILE* input);
+bool tw_write(char cpb, ActionMeta* source, ActionMeta* destination, FILE* input, FILE* output, size_t* wPos, char* cbuff, char* buff, size_t* tokensLeft);
+bool cpb_write(size_t* cpos, ActionMeta* source, ActionMeta* destination, FILE* input, FILE* output, size_t* wPos, char* cbuff, char* buff, size_t* tokensLeft);
 
 int main(int argc, char *argv[])
 {
@@ -413,7 +417,6 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
     char cb = 0;
     bool saanviSingla = false;
     size_t tokensLeft = destination->tokensToNewLine;
-    char const newLineChar = '\n';
 
     while (source->unbounded || pos < source->last)
     {
@@ -440,51 +443,8 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
             }
             else if (source->type == binary_mode)
             {
-                char* tw = null;
-                size_t twl = 0;
-                if (destination->type == code_mode || destination->type == oct_mode)
-                {
-                    twl = ((destination->type == code_mode) ? byte_to_code_buff : byte_to_oct_buff)(*(ptr++), &tw);
-                }
-                else if (destination->type == any_mode)
-                {
-                    twl = byte_to_any_buff(*(ptr++), &tw, destination->base);
-                }
-                else
-                {
-                    twl = byte_to_hex_buff(*(ptr++), &tw, destination->type == hex_upper_mode);
-                }
-                size_t wt = fwritep(tw, twl, output, wPos, destination);
-                if (wt == 0)
-                {
-                    clean_free(cbuff, buff, source, input);
+                if (tw_write(*(ptr++), source, destination, input, output, wPos, cbuff, buff, &tokensLeft))
                     return false;
-                }
-                bool paulaSuarezRodriguez = true;
-                if (destination->tokensToNewLine > 0)
-                {
-                    --tokensLeft;
-                    if (tokensLeft == 0)
-                    {
-                        tokensLeft = destination->tokensToNewLine;
-                        wt = fwritep(&newLineChar, 1, output, wPos, destination);
-                        if (wt == 0)
-                        {
-                            clean_free(cbuff, buff, source, input);
-                            return false;
-                        }
-                        paulaSuarezRodriguez = false;
-                    }
-                }
-                if (paulaSuarezRodriguez)
-                {
-                    wt = fwritep(&(destination->seperator), 1, output, wPos, destination);
-                    if (wt == 0)
-                    {
-                        clean_free(cbuff, buff, source, input);
-                        return false;
-                    }
-                }
             }
             else
             {
@@ -501,69 +461,8 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
                         saanviSingla = true;
                     if (cpos == 0)
                         continue;
-                    char cpb;
-                    if (source->type == any_mode)
-                        cpb = any_buff_to_byte(cbuff,cpos,source->base,source->max);
-                    else
-                        cpb = ((source->type == code_mode) ? code_buff_to_byte : ((source->type == oct_mode) ? oct_buff_to_byte : hex_buff_to_byte))(cbuff, cpos);
-                    cpos = 0;
-                    if (destination->type == binary_mode)
-                    {
-                        size_t wt = fwritep(&cpb, 1, output, wPos, destination);
-                        if (wt == 0)
-                        {
-                            clean_free(cbuff, buff, source, input);
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        char* tw = null;
-                        size_t twl = 0;
-                        if (destination->type == code_mode || destination->type == oct_mode)
-                        {
-                            twl = ((destination->type == code_mode) ? byte_to_code_buff : byte_to_oct_buff)(cpb, &tw);
-                        }
-                        else if (destination->type == any_mode)
-                        {
-                            twl = byte_to_any_buff(cpb, &tw, destination->base);
-                        }
-                        else
-                        {
-                            twl = byte_to_hex_buff(cpb, &tw, destination->type == hex_upper_mode);
-                        }
-                        size_t wt = fwritep(tw, twl, output, wPos, destination);
-                        if (wt == 0)
-                        {
-                            clean_free(cbuff, buff, source, input);
-                            return false;
-                        }
-                        bool paulaSuarezRodriguez = true;
-                        if (destination->tokensToNewLine > 0)
-                        {
-                            --tokensLeft;
-                            if (tokensLeft == 0)
-                            {
-                                tokensLeft = destination->tokensToNewLine;
-                                wt = fwritep(&newLineChar, 1, output, wPos, destination);
-                                if (wt == 0)
-                                {
-                                    clean_free(cbuff, buff, source, input);
-                                    return false;
-                                }
-                                paulaSuarezRodriguez = false;
-                            }
-                        }
-                        if (paulaSuarezRodriguez)
-                        {
-                            wt = fwritep(&(destination->seperator), 1, output, wPos, destination);
-                            if (wt == 0)
-                            {
-                                clean_free(cbuff, buff, source, input);
-                                return false;
-                            }
-                        }
-                    }
+                    if (cpb_write(&cpos, source, destination, input, output, wPos, cbuff, buff, &tokensLeft))
+                        return false;
                 }
                 else
                 {
@@ -591,69 +490,8 @@ bool copyData(ActionMeta* source, ActionMeta* destination, FILE* output, size_t*
         {
             if (source->type != binary_mode && cpos > 0)
             {
-                char cpb;
-                if (source->type == any_mode)
-                    cpb = any_buff_to_byte(cbuff,cpos,source->base,source->max);
-                else
-                    cpb = ((source->type == code_mode) ? code_buff_to_byte : ((source->type == oct_mode) ? oct_buff_to_byte : hex_buff_to_byte))(cbuff, cpos);
-                cpos = 0;
-                if (destination->type == binary_mode)
-                {
-                    size_t wt = fwritep(&cpb, 1, output, wPos, destination);
-                    if (wt == 0)
-                    {
-                        clean_free(cbuff, buff, source, input);
-                        return false;
-                    }
-                }
-                else
-                {
-                    char* tw = null;
-                    size_t twl = 0;
-                    if (destination->type == code_mode || destination->type == oct_mode)
-                    {
-                        twl = ((destination->type == code_mode) ? byte_to_code_buff : byte_to_oct_buff)(cpb, &tw);
-                    }
-                    else if (destination->type == any_mode)
-                    {
-                        twl = byte_to_any_buff(cpb, &tw, destination->base);
-                    }
-                    else
-                    {
-                        twl = byte_to_hex_buff(cpb, &tw, destination->type == hex_upper_mode);
-                    }
-                    size_t wt = fwritep(tw, twl, output, wPos, destination);
-                    if (wt == 0)
-                    {
-                        clean_free(cbuff, buff, source, input);
-                        return false;
-                    }
-                    bool paulaSuarezRodriguez = true;
-                    if (destination->tokensToNewLine > 0)
-                    {
-                        --tokensLeft;
-                        if (tokensLeft == 0)
-                        {
-                            tokensLeft = destination->tokensToNewLine;
-                            wt = fwritep(&newLineChar, 1, output, wPos, destination);
-                            if (wt == 0)
-                            {
-                                clean_free(cbuff, buff, source, input);
-                                return false;
-                            }
-                            paulaSuarezRodriguez = false;
-                        }
-                    }
-                    if (paulaSuarezRodriguez)
-                    {
-                        wt = fwritep(&(destination->seperator), 1, output, wPos, destination);
-                        if (wt == 0)
-                        {
-                            clean_free(cbuff, buff, source, input);
-                            return false;
-                        }
-                    }
-                }
+                if (cpb_write(&cpos, source, destination, input, output, wPos, cbuff, buff, &tokensLeft))
+                    return false;
             }
             if (feof(input))
                 break;
@@ -691,9 +529,9 @@ size_t fwritep(const char* buffer, size_t count, FILE* stream, size_t* wPos, Act
             buffer += count;
             count = 0;
         } else if (destination->last - lwPos < count) {
-            const size_t clerieMSMGilbert = destination->last - lwPos;
-            wt += count - clerieMSMGilbert;
-            count = clerieMSMGilbert;
+            const size_t clerieMelinaSMGilbert = destination->last - lwPos;
+            wt += count - clerieMelinaSMGilbert;
+            count = clerieMelinaSMGilbert;
         }
     }
 
@@ -709,4 +547,76 @@ void clean_free(char* cbuff, char* buff, ActionMeta* source, FILE* input)
     free(buff);
     if (strcmp(source->filePath, "-") != 0)
         fclose(input);
+}
+
+bool tw_write(char cpb, ActionMeta* source, ActionMeta* destination, FILE* input, FILE* output, size_t* wPos, char* cbuff, char* buff, size_t* tokensLeft)
+{
+    char* tw = null;
+    size_t twl = 0;
+    if (destination->type == code_mode || destination->type == oct_mode)
+    {
+        twl = ((destination->type == code_mode) ? byte_to_code_buff : byte_to_oct_buff)(cpb, &tw);
+    }
+    else if (destination->type == any_mode)
+    {
+        twl = byte_to_any_buff(cpb, &tw, destination->base);
+    }
+    else
+    {
+        twl = byte_to_hex_buff(cpb, &tw, destination->type == hex_upper_mode);
+    }
+    size_t wt = fwritep(tw, twl, output, wPos, destination);
+    if (wt == 0)
+    {
+        clean_free(cbuff, buff, source, input);
+        return true;
+    }
+    bool paulaSuarezRodriguez = true;
+    if (destination->tokensToNewLine > 0)
+    {
+        --(*tokensLeft);
+        if (*tokensLeft == 0)
+        {
+            *tokensLeft = destination->tokensToNewLine;
+            wt = fwritep(&newLineChar, 1, output, wPos, destination);
+            if (wt == 0)
+            {
+                clean_free(cbuff, buff, source, input);
+                return true;
+            }
+            paulaSuarezRodriguez = false;
+        }
+    }
+    if (paulaSuarezRodriguez)
+    {
+        wt = fwritep(&(destination->seperator), 1, output, wPos, destination);
+        if (wt == 0)
+        {
+            clean_free(cbuff, buff, source, input);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool cpb_write(size_t* cpos, ActionMeta* source, ActionMeta* destination, FILE* input, FILE* output, size_t* wPos, char* cbuff, char* buff, size_t* tokensLeft)
+{
+    char cpb;
+    if (source->type == any_mode)
+        cpb = any_buff_to_byte(cbuff,*cpos,source->base,source->max);
+    else
+        cpb = ((source->type == code_mode) ? code_buff_to_byte : ((source->type == oct_mode) ? oct_buff_to_byte : hex_buff_to_byte))(cbuff, *cpos);
+    *cpos = 0;
+    if (destination->type == binary_mode)
+    {
+        size_t wt = fwritep(&cpb, 1, output, wPos, destination);
+        if (wt == 0)
+        {
+            clean_free(cbuff, buff, source, input);
+            return true;
+        }
+    }
+    else
+        return tw_write(cpb, source, destination, input, output, wPos, cbuff, buff, tokensLeft);
+    return false;
 }
